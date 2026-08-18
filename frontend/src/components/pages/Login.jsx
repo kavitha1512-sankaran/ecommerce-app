@@ -1,118 +1,113 @@
 import React, { useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import API from "../api";
 
-function Login() {
+const Login = () => {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async (e) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!email || !password) {
+      alert("Please enter email and password");
+      return;
+    }
+
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
+      setLoading(true);
+
+      const response = await API.post(
+        "/auth/login",
         {
           email,
           password
         }
       );
 
-      // Save login information
-      localStorage.setItem("token", response.data.token);
+      console.log(response.data);
 
-      if (response.data.user) {
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-      }
+      localStorage.setItem(
+        "token",
+        response.data.token
+      );
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify(response.data.user)
+      );
 
       alert("Login successful!");
 
-      // Go to products page
-      navigate("/products");
-
+      navigate("/");
     } catch (error) {
-      console.error(error);
+      console.error("Login error:", error);
 
       alert(
         error.response?.data?.message ||
         "Login failed. Please check your email and password."
       );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
+    <div className="auth-container">
+
+      <div className="auth-box">
+
         <h1>Login</h1>
 
-        <form onSubmit={handleLogin}>
-          <input
-            type="email"
-            placeholder="Enter Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+        <form onSubmit={handleSubmit}>
 
-          <input
-            type="password"
-            placeholder="Enter Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div>
+            <label>Email</label>
 
-          <button type="submit">
-            Login
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) =>
+                setEmail(e.target.value)
+              }
+            />
+          </div>
+
+          <div>
+            <label>Password</label>
+
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) =>
+                setPassword(e.target.value)
+              }
+            />
+          </div>
+
+          <button type="submit" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
           </button>
+
         </form>
 
         <p>
-          Don't have an account?
+          Don't have an account?{" "}
+          <Link to="/register">
+            Create Account
+          </Link>
         </p>
 
-        <button
-          style={styles.registerButton}
-          onClick={() => navigate("/register")}
-        >
-          Create Account
-        </button>
       </div>
+
     </div>
   );
-}
-
-const styles = {
-  container: {
-    minHeight: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    background: "#f5f5f5"
-  },
-
-  card: {
-    width: "400px",
-    padding: "40px",
-    background: "white",
-    borderRadius: "15px",
-    boxShadow: "0 5px 20px rgba(0,0,0,0.15)",
-    textAlign: "center"
-  },
-
-  h1: {
-    marginBottom: "25px"
-  },
-
-  input: {
-    width: "100%"
-  },
-
-  registerButton: {
-    background: "#555"
-  }
 };
 
 export default Login;
