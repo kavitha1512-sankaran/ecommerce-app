@@ -1,27 +1,100 @@
 const express = require("express");
 const router = express.Router();
+const Product = require("../models/Product");
 
-const {
-  getProducts,
-  getProductById,
-  createProduct,
-  updateProduct,
-  deleteProduct
-} = require("../controllers/productController");
+// GET all products
+router.get("/", async (req, res) => {
+  try {
+    const products = await Product.find();
+    res.json(products);
+  } catch (error) {
+    console.error("Get products error:", error);
+    res.status(500).json({
+      message: "Failed to fetch products",
+      error: error.message
+    });
+  }
+});
 
-// Get all products
-router.get("/", getProducts);
+// GET single product
+router.get("/:id", async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
 
-// Get single product
-router.get("/:id", getProductById);
+    if (!product) {
+      return res.status(404).json({
+        message: "Product not found"
+      });
+    }
 
-// Create product
-router.post("/", createProduct);
+    res.json(product);
+  } catch (error) {
+    console.error("Get product error:", error);
+    res.status(500).json({
+      message: "Failed to fetch product",
+      error: error.message
+    });
+  }
+});
 
-// Update product
-router.put("/:id", updateProduct);
+// CREATE product
+router.post("/", async (req, res) => {
+  try {
+    const {
+      name,
+      description,
+      price,
+      category,
+      brand,
+      image,
+      stock,
+      rating
+    } = req.body;
 
-// Delete product
-router.delete("/:id", deleteProduct);
+    const product = new Product({
+      name,
+      description,
+      price,
+      category,
+      brand,
+      image,
+      stock,
+      rating
+    });
+
+    const savedProduct = await product.save();
+
+    res.status(201).json(savedProduct);
+  } catch (error) {
+    console.error("Create product error:", error);
+    res.status(500).json({
+      message: "Failed to create product",
+      error: error.message
+    });
+  }
+});
+
+// DELETE product
+router.delete("/:id", async (req, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({
+        message: "Product not found"
+      });
+    }
+
+    res.json({
+      message: "Product deleted successfully"
+    });
+  } catch (error) {
+    console.error("Delete product error:", error);
+    res.status(500).json({
+      message: "Failed to delete product",
+      error: error.message
+    });
+  }
+});
 
 module.exports = router;
