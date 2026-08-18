@@ -1,16 +1,15 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import API from "../api";
+import API from "../../api";
 
-const Login = () => {
+function Login() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
     if (!email || !password) {
@@ -21,25 +20,23 @@ const Login = () => {
     try {
       setLoading(true);
 
-      const response = await API.post(
-        "/auth/login",
-        {
-          email,
-          password
-        }
-      );
+      const response = await API.post("/auth/login", {
+        email,
+        password,
+      });
 
-      console.log(response.data);
+      console.log("Login response:", response.data);
 
-      localStorage.setItem(
-        "token",
-        response.data.token
-      );
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token);
+      }
 
-      localStorage.setItem(
-        "user",
-        JSON.stringify(response.data.user)
-      );
+      if (response.data.user) {
+        localStorage.setItem(
+          "user",
+          JSON.stringify(response.data.user)
+        );
+      }
 
       alert("Login successful!");
 
@@ -47,10 +44,11 @@ const Login = () => {
     } catch (error) {
       console.error("Login error:", error);
 
-      alert(
+      const message =
         error.response?.data?.message ||
-        "Login failed. Please check your email and password."
-      );
+        "Login failed. Please check your email and password.";
+
+      alert(message);
     } finally {
       setLoading(false);
     }
@@ -58,56 +56,54 @@ const Login = () => {
 
   return (
     <div className="auth-container">
-
       <div className="auth-box">
-
         <h1>Login</h1>
 
-        <form onSubmit={handleSubmit}>
+        <p className="auth-subtitle">
+          Login to your E-Commerce account
+        </p>
 
-          <div>
+        <form onSubmit={handleLogin}>
+          <div className="form-group">
             <label>Email</label>
 
             <input
               type="email"
               placeholder="Enter your email"
               value={email}
-              onChange={(e) =>
-                setEmail(e.target.value)
-              }
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
 
-          <div>
+          <div className="form-group">
             <label>Password</label>
 
             <input
               type="password"
               placeholder="Enter your password"
               value={password}
-              onChange={(e) =>
-                setPassword(e.target.value)
-              }
+              onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
 
-          <button type="submit" disabled={loading}>
+          <button
+            type="submit"
+            className="auth-button"
+            disabled={loading}
+          >
             {loading ? "Logging in..." : "Login"}
           </button>
-
         </form>
 
-        <p>
+        <p className="auth-link">
           Don't have an account?{" "}
-          <Link to="/register">
-            Create Account
-          </Link>
+          <Link to="/register">Create Account</Link>
         </p>
-
       </div>
-
     </div>
   );
-};
+}
 
 export default Login;

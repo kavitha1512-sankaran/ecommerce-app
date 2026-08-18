@@ -1,29 +1,19 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import API from "../api";
+import API from "../../api";
 
-const Register = () => {
+function Register() {
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: ""
-  });
-
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.email || !formData.password) {
+    if (!name || !email || !password) {
       alert("Please fill all fields");
       return;
     }
@@ -31,34 +21,25 @@ const Register = () => {
     try {
       setLoading(true);
 
-      const response = await API.post(
-        "/auth/register",
-        formData
-      );
+      const response = await API.post("/auth/register", {
+        name,
+        email,
+        password,
+      });
 
-      console.log(response.data);
-
-      // Save login information
-      localStorage.setItem(
-        "token",
-        response.data.token
-      );
-
-      localStorage.setItem(
-        "user",
-        JSON.stringify(response.data.user)
-      );
+      console.log("Register response:", response.data);
 
       alert("Registration successful!");
 
-      navigate("/");
+      navigate("/login");
     } catch (error) {
       console.error("Registration error:", error);
 
-      alert(
+      const message =
         error.response?.data?.message ||
-        "Registration failed. Please try again."
-      );
+        "Registration failed. Please try again.";
+
+      alert(message);
     } finally {
       setLoading(false);
     }
@@ -66,68 +47,66 @@ const Register = () => {
 
   return (
     <div className="auth-container">
-
       <div className="auth-box">
-
         <h1>Create Account</h1>
 
-        <p>Create your E-Commerce account</p>
+        <p className="auth-subtitle">
+          Create your E-Commerce account
+        </p>
 
-        <form onSubmit={handleSubmit}>
-
-          <div>
+        <form onSubmit={handleRegister}>
+          <div className="form-group">
             <label>Name</label>
 
             <input
               type="text"
-              name="name"
               placeholder="Enter your name"
-              value={formData.name}
-              onChange={handleChange}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
             />
           </div>
 
-          <div>
+          <div className="form-group">
             <label>Email</label>
 
             <input
               type="email"
-              name="email"
               placeholder="Enter your email"
-              value={formData.email}
-              onChange={handleChange}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
 
-          <div>
+          <div className="form-group">
             <label>Password</label>
 
             <input
               type="password"
-              name="password"
               placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleChange}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
 
-          <button type="submit" disabled={loading}>
-            {loading ? "Creating Account..." : "Register"}
+          <button
+            type="submit"
+            className="auth-button"
+            disabled={loading}
+          >
+            {loading ? "Creating..." : "Register"}
           </button>
-
         </form>
 
-        <p>
+        <p className="auth-link">
           Already have an account?{" "}
-          <Link to="/login">
-            Login
-          </Link>
+          <Link to="/login">Login</Link>
         </p>
-
       </div>
-
     </div>
   );
-};
+}
 
 export default Register;
